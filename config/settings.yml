@@ -1,0 +1,5 @@
+plugin:
+  pm_scanner_enabled:
+    default: true
+  pm_scanner_keywords:
+    default: ""
