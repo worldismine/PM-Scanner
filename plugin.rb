@@ -7,37 +7,27 @@
 enabled_site_setting :pm_scanner_enabled
 
 after_initialize {
-  module ::PMScanner
-    def self.included(base)
-      base.class_eval do
-        after_save :pm_scanner_scan
 
-        def pm_scanner_scan
-          return if !SiteSetting.pm_scanner_enabled
+  self.add_model_callback(Post, :after_save) {
+    if SiteSetting.pm_scanner_enabled
+      keywords = SiteSetting.pm_scanner_keywords.to_s.split(",").map{ |k| Regexp.escape(k.strip) }
 
-          keywords = SiteSetting.pm_scanner_keywords.to_s
-          return if keywords.blank?
+      if !keywords.blank?
+        post_topic = self.topic
 
-          post_topic = self.topic
-          return if !post_topic.private_message?
-
-          regexp = Regexp.new(Regexp.escape(keywords))
+        if post_topic.private_message?
+          regexp = Regexp.new(keywords.join("|"), Regexp::IGNORECASE)
           if match_data = self.raw.match(regexp) # nil or MatchData
-            # WIP
-            # User.where(admin: true).each do |adm|
-            #   Notification.create(
-            #     topic_id: post_topic.id,
-            #     user_id: adm.id,
-            #     post_number: self.post_number,
-            #     notification_type: 14, # custom
-            #     data: {}
-            #   )
-            # end
+            User.where(admin: true).where("id > ?", 0).each do |adm|
+              notif_payload = {topic_id: post_topic.id, user_id: adm.id, post_number: self.post_number, notification_type: Notification.types[:custom]}
+              if Notification.where(notif_payload).first.blank?
+                Notification.create(notif_payload.merge(data: {message: "pm_scanner.notification.found", display_username: match_data.to_s, topic_title: post_topic.title}.to_json))
+              end
+            end
           end
         end
       end
     end
-  end
+  }
 
-  ::Post.send(:include, PMScanner)
 }

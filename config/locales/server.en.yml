@@ -1,4 +1,4 @@
 en:
   site_settings:
     pm_scanner_enabled: "Enable PM Scanner?"
-    pm_scanner_keywords: "List of keyword separated by \"|\" e.g. \"john doe|is|cool!\" (case insensitive)"
+    pm_scanner_keywords: 'List of keyword separated by "," e.g. "john doe,is cool!" (case insensitive, ignore new line)'
