@@ -2,4 +2,4 @@ en:
   js:
     pm_scanner:
       notification:
-        found: '<i class="fa fa-warning-sign"></i><strong>{{username}}</strong> {{description}}'
+        found: '<span style="color:red"><i class="fa fa-exclamation"></i><strong>{{username}}</strong></span> {{description}}'
