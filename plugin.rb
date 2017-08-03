@@ -1,7 +1,7 @@
 # name: discourse-pm-scanner
 # about: Discourse plugin that scan PM's with specific keywords and will notify admin if find any
 # authors: Muhlis Budi Cahyono (muhlisbc@gmail.com)
-# version: 0.1
+# version: 0.2
 # url: http://git.dev.abylina.com/momon/discourse-pm-scanner
 
 enabled_site_setting :pm_scanner_enabled
