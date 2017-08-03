@@ -22,7 +22,7 @@ after_initialize {
           if match_data = self.raw.match(regexp) # nil or MatchData
   
             admins = User.where(admin: true).pluck(:id) # collect admin ids
-            users  = post_topic.topic_users.pluck(:id) # collect users
+            users  = post_topic.topic_users.pluck(:user_id) # collect users
   
             if (admins & users).empty? # if admins are not in the conversation
 
