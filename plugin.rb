@@ -16,13 +16,23 @@ after_initialize {
         post_topic = self.topic
 
         if post_topic.private_message?
+  
           regexp = Regexp.new(keywords.join("|"), Regexp::IGNORECASE)
+  
           if match_data = self.raw.match(regexp) # nil or MatchData
-            User.where(admin: true).where("id > ?", 0).each do |adm|
-              notif_payload = {topic_id: post_topic.id, user_id: adm.id, post_number: self.post_number, notification_type: Notification.types[:custom]}
-              if Notification.where(notif_payload).first.blank?
-                Notification.create(notif_payload.merge(data: {message: "pm_scanner.notification.found", display_username: match_data.to_s, topic_title: post_topic.title}.to_json))
+  
+            admins = User.where(admin: true).pluck(:id) # collect admin ids
+            users  = post_topic.topic_users.pluck(:id) # collect users
+  
+            if (admins & users).empty? # if admins are not in the conversation
+
+              admins.select{ |adm_id| adm_id > 0 }.each do |adm_id| # notify ONLY human admins
+                notif_payload = {topic_id: post_topic.id, user_id: adm_id, post_number: self.post_number, notification_type: Notification.types[:custom]}
+                if Notification.where(notif_payload).first.blank?
+                  Notification.create(notif_payload.merge(data: {message: "pm_scanner.notification.found", display_username: match_data.to_s, topic_title: post_topic.title}.to_json))
+                end
               end
+
             end
           end
         end
