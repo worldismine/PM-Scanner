@@ -1,14 +1,13 @@
 # name: discourse-pm-scanner
-# about: Discourse plugin that scan PM's with specific keywords and will notify admin if find any
 # authors: Muhlis Budi Cahyono (muhlisbc@gmail.com)
-# version: 0.3
-# url: http://git.dev.abylina.com/momon/discourse-pm-scanner
+# version: 0.4
+# url: https://github.com/muhlisbc
 
 enabled_site_setting :pm_scanner_enabled
 
 after_initialize {
 
-  self.add_model_callback(Post, :after_save) {
+  add_model_callback(:post, :after_save) {
     if SiteSetting.pm_scanner_enabled
       keywords = SiteSetting.pm_scanner_keywords.to_s.split(",").map{ |k| Regexp.escape(k.strip) }
 
@@ -18,9 +17,10 @@ after_initialize {
         if post_topic.private_message?
   
           regexp = Regexp.new(keywords.join("|"), Regexp::IGNORECASE)
+          match_data = self.raw.match(regexp) # nil or MatchData
+          creator = self.user
   
-          if match_data = self.raw.match(regexp) # nil or MatchData
-  
+          if match_data && creator && !creator.admin
             admin_ids = User.where("id > ?", 0).where(admin: true).pluck(:id)
             user_ids  = post_topic.topic_allowed_users.pluck(:user_id)
   
