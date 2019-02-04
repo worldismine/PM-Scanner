@@ -1,11 +1,13 @@
 # name: discourse-pm-scanner
 # authors: Muhlis Budi Cahyono (muhlisbc@gmail.com)
-# version: 0.4
+# version: 0.5
 # url: https://github.com/muhlisbc
 
 enabled_site_setting :pm_scanner_enabled
 
 after_initialize {
+
+  register_svg_icon("exclamation")
 
   add_model_callback(:post, :after_save) {
     if SiteSetting.pm_scanner_enabled
