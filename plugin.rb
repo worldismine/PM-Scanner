@@ -9,7 +9,7 @@ after_initialize {
 
   register_svg_icon("exclamation")
 
-  add_model_callback(ChatMessage, :after_save) {
+  add_model_callback(::ChatMessage, :after_save) {
     begin
       return unless SiteSetting.pm_scanner_enabled
 
