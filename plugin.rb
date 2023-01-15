@@ -1,6 +1,6 @@
 # name: discourse-pm-scanner
 # authors: Muhlis Budi Cahyono (muhlisbc@gmail.com) and richard@communiteq.com
-# version: 3.0
+# version: 3.0.1
 # url: https://github.com/worldismine/PM-Scanner
 
 enabled_site_setting :pm_scanner_enabled
@@ -9,7 +9,7 @@ after_initialize {
 
   register_svg_icon("exclamation")
 
-  add_model_callback(:ChatMessage, :after_save) {
+  add_model_callback(ChatMessage, :after_save) {
     begin
       return unless SiteSetting.pm_scanner_enabled
 
