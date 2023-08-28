@@ -1,6 +1,6 @@
 # name: discourse-pm-scanner
 # authors: Muhlis Budi Cahyono (muhlisbc@gmail.com) and richard@communiteq.com
-# version: 3.0.1
+# version: 3.1.0
 # url: https://github.com/worldismine/PM-Scanner
 
 enabled_site_setting :pm_scanner_enabled
@@ -9,13 +9,12 @@ after_initialize {
 
   register_svg_icon("exclamation")
 
-  add_model_callback(::ChatMessage, :after_save) {
+  add_model_callback(::Chat::Message, :after_save) {
     begin
       return unless SiteSetting.pm_scanner_enabled
-
       return unless self.chat_channel.chatable_type == "DirectMessage"
       admin_ids = Group[:admins].users.pluck(:id)
-      return unless (ChatChannelMembershipsQuery.call(self.chat_channel).pluck(:user_id) & admin_ids).count
+      return unless (::Chat::ChannelMembershipsQuery.call(channel: self.chat_channel).pluck(:user_id) & admin_ids).count
 
       keywords = SiteSetting.pm_scanner_keywords.to_s.split(",").map{ |k| Regexp.escape(k.strip) }
       regexp = Regexp.new(keywords.join("|"), Regexp::IGNORECASE)
