@@ -1,6 +1,6 @@
 # name: discourse-pm-scanner
 # authors: Muhlis Budi Cahyono (muhlisbc@gmail.com) and richard@communiteq.com
-# version: 3.1.0
+# version: 3.1.1
 # url: https://github.com/worldismine/PM-Scanner
 
 enabled_site_setting :pm_scanner_enabled
@@ -90,7 +90,7 @@ after_initialize {
     end
   end
 
-  class ::DirectMessage
+  class ::Chat::DirectMessage
     prepend PMScannerDirectMessage
   end
 
