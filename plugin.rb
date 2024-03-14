@@ -13,14 +13,14 @@ after_initialize {
     begin
       return unless SiteSetting.pm_scanner_enabled
       return unless self.chat_channel.chatable_type == "DirectMessage"
-      admin_ids = Group[:admins].users.pluck(:id)
-      return unless (::Chat::ChannelMembershipsQuery.call(channel: self.chat_channel).pluck(:user_id) & admin_ids).count
+      staff_ids = Group[:staff].users.pluck(:id)
+      return unless (::Chat::ChannelMembershipsQuery.call(channel: self.chat_channel).pluck(:user_id) & staff_ids).count
 
       keywords = SiteSetting.pm_scanner_keywords.to_s.split(",").map{ |k| Regexp.escape(k.strip) }
       regexp = Regexp.new(keywords.join("|"), Regexp::IGNORECASE)
       match_data = self.message.match(regexp) # nil or MatchData
       creator = self.user
-      return unless match_data && creator && !creator.admin
+      return unless match_data && creator && !creator.staff?
 
       messages = self.chat_channel.chat_messages.where("id <= #{self.id}").order(created_at: :desc).limit(10)
       body = "[Open chat](/chat/c/open/#{self.chat_channel.id})\n\n"
@@ -34,13 +34,13 @@ after_initialize {
         archetype: Archetype.private_message,
         title: "PM Scanner: " + title.truncate(SiteSetting.max_topic_title_length, separator: /\s/),
         raw: ERB::Util.html_escape(body),
-        target_group_names: [Group[:admins].name]
+        target_group_names: [Group[:staff].name]
       }
       post = PostCreator.create!(Discourse.system_user, create_args)
       return unless post
 
-      admin_ids.each do |adm_id| # notify ONLY human admins
-        notif_payload = {topic_id: post.topic.id, user_id: adm_id, post_number: post.post_number, notification_type: Notification.types[:custom]}
+      staff_ids.each do |staff_id| # notify ONLY human staff
+        notif_payload = {topic_id: post.topic.id, user_id: staff_id, post_number: post.post_number, notification_type: Notification.types[:custom]}
         if Notification.where(notif_payload).first.blank?
           Notification.create(notif_payload.merge(data: {message: "pm_scanner.notification.found", display_username: match_data.to_s, topic_title: title}.to_json))
         end
@@ -62,14 +62,13 @@ after_initialize {
           match_data = self.raw.match(regexp) # nil or MatchData
           creator = self.user
 
-          if match_data && creator && !creator.admin
-            admin_ids = User.where("id > ?", 0).where(admin: true).pluck(:id)
+          if match_data && creator && !creator.staff?
+            staff_ids = Group[:staff].users.where("user_id > ?", 0).pluck(:id)
             user_ids  = post_topic.topic_allowed_users.pluck(:user_id)
 
-            if (admin_ids & user_ids).empty? # if admins are not in the conversation
-
-              admin_ids.each do |adm_id| # notify ONLY human admins
-                notif_payload = {topic_id: post_topic.id, user_id: adm_id, post_number: self.post_number, notification_type: Notification.types[:custom]}
+            if (staff_ids & user_ids).empty? # if staff are not in the conversation
+              staff_ids.each do |staff_id| # notify ONLY human staff
+                notif_payload = {topic_id: post_topic.id, user_id: staff_id, post_number: self.post_number, notification_type: Notification.types[:custom]}
                 if Notification.where(notif_payload).first.blank?
                   Notification.create(notif_payload.merge(data: {message: "pm_scanner.notification.found", display_username: match_data.to_s, topic_title: post_topic.title}.to_json))
                 end
@@ -82,10 +81,10 @@ after_initialize {
     end
   }
 
-  # admins need to be able to see the direct message chats
+  # staff need to be able to see the direct message chats
   module ::PMScannerDirectMessage
     def user_can_access?(user)
-      return true if SiteSetting.pm_scanner_enabled && user.admin?
+      return true if SiteSetting.pm_scanner_enabled && user.staff?
       super(user)
     end
   end
