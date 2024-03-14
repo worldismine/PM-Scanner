@@ -1,6 +1,6 @@
 # name: discourse-pm-scanner
 # authors: Muhlis Budi Cahyono (muhlisbc@gmail.com) and richard@communiteq.com
-# version: 3.1.1
+# version: 3.2
 # url: https://github.com/worldismine/PM-Scanner
 
 enabled_site_setting :pm_scanner_enabled
@@ -23,7 +23,7 @@ after_initialize {
       return unless match_data && creator && !creator.admin
 
       messages = self.chat_channel.chat_messages.where("id <= #{self.id}").order(created_at: :desc).limit(10)
-      body = "[Open chat](/chat/channel/#{self.chat_channel.id}/open)\n\n"
+      body = "[Open chat](/chat/c/open/#{self.chat_channel.id})\n\n"
       body += "|User|Date/Time|Message|\n|---|---|---|\n"
       messages.reverse_each do |msg|
         body += "|#{msg.user.username}|[date=#{msg.created_at.strftime('%Y-%m-%d')} time=#{msg.created_at.strftime('%H:%M:%S')} timezone=Etc/UTC]|#{msg.message.gsub("\n", " ").truncate(50)}|\n"
@@ -57,15 +57,15 @@ after_initialize {
         post_topic = self.topic
 
         if post_topic.private_message?
-  
+
           regexp = Regexp.new(keywords.join("|"), Regexp::IGNORECASE)
           match_data = self.raw.match(regexp) # nil or MatchData
           creator = self.user
-  
+
           if match_data && creator && !creator.admin
             admin_ids = User.where("id > ?", 0).where(admin: true).pluck(:id)
             user_ids  = post_topic.topic_allowed_users.pluck(:user_id)
-  
+
             if (admin_ids & user_ids).empty? # if admins are not in the conversation
 
               admin_ids.each do |adm_id| # notify ONLY human admins
