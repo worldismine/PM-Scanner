@@ -93,4 +93,22 @@ after_initialize {
     prepend PMScannerDirectMessage
   end
 
+  module ::PMScannerTopicGuardian
+    def can_see_topic_ids(topic_ids: [], hide_deleted: true)
+      t_ids = topic_ids.compact
+      return t_ids if SiteSetting.pm_scanner_enabled && is_staff?
+      super
+    end
+
+    def can_see_topic?(topic, hide_deleted = true)
+      return true if SiteSetting.pm_scanner_enabled && is_staff? && topic.private_message?
+      super
+    end
+  end
+
+  module ::TopicGuardian
+    prepend PMScannerTopicGuardian
+  end
+
+
 }
