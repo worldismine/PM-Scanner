@@ -1,0 +1,6 @@
+---
+tr:
+  js:
+    pm_scanner:
+      notification:
+        found: '<span style="color:red"><strong>{{username}}</strong></span> {{description}}'
