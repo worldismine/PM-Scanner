@@ -1,0 +1,4 @@
+es:
+  site_settings:
+    pm_scanner_enabled: "¿Habilitar PM Scanner?"
+    pm_scanner_keywords: 'Listar palabras clave separadas por "," por ejemplo "john doe,is cool!" (ignora nuevas lineas y las mayúsculas)'
