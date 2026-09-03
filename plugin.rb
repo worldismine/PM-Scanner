@@ -101,7 +101,7 @@ after_initialize {
     end
 
     def can_see_topic?(topic, hide_deleted = true)
-      return true if SiteSetting.pm_scanner_enabled && is_staff? && topic.private_message?
+      return true if SiteSetting.pm_scanner_enabled && is_staff? && topic&.private_message?
       super
     end
   end
